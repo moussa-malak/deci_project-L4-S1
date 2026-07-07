@@ -6,7 +6,7 @@ const {
   getOrderById,
   updateOrderStatus,
 } = require("../controller/orderController");
-
+const orderValidator= require("../validators/orderValidator");
 Router.use(express.json());
 
 Router.get("/", getAllOrders);

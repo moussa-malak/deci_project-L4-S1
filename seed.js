@@ -1,15 +1,20 @@
 const proudct = require("./models/productSchema");
 const category = require("./models/cartSchema");
 const cart = require("./models/cartSchema");
- const mongoose = require("mongoose");
+const order = require("./models/orderSchema");
+const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
-try {
-  mongoose.connect(process.env.mongodb_url);
-  then(async () => {
+
+async function seed() {
+  try {
+    await mongoose.connect(process.env.mongodb_url);
     console.log("Database connected");
+
     await category.deleteMany();
     await proudct.deleteMany();
+    await cart.deleteMany();
+    await order.deleteMany();
 
     const electronics = await category.create({
       name: "Electronics",
@@ -19,6 +24,7 @@ try {
       name: "Clothes",
       description: "Apparel and fashion items",
     });
+
     await proudct.insertMany([
       {
         name: "iPhone",
@@ -31,8 +37,9 @@ try {
         description: "Cotton t-shirt",
         price: 19.99,
         category: clothes._id,
-      }
+      },
     ]);
+
     await proudct.create({
       name: "T-Shirt",
       description: "Cotton t-shirt",
@@ -43,25 +50,30 @@ try {
     await cart.insertMany([
       {
         name: "T-Shirt",
-        totalPrice: 19.99,
         quantity: 6,
       },
       {
         name: "Shirt",
-        totalPrice: 19,
         quantity: 6,
       },
       {
         name: "5 Shirt",
-        totalPrice: 1925.99,
         quantity: 6,
-      }
-    ])
-  })
-      console.log("seed completed");
-    process.exit(1);
-} catch {
-  err => (
-    console.log(err)
-  )
-};
+      },
+    ]);
+
+    const cart1 = await cart.create({
+      name: "5 Shirt",
+      quantity: 6,
+    });
+
+    console.log("seed completed");
+  } catch (err) {
+    console.log(err);
+  } finally {
+    await mongoose.disconnect();
+    process.exit(0);
+  }
+}
+
+seed();

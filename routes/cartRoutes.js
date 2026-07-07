@@ -14,7 +14,7 @@ const deleteItemFromCart =
   require("../controller/cartController").deleteItemFromCart;
 const deleteAllItemsFromCart =
   require("../controller/cartController").deleteAllItemsFromCart;
-
+const cartValidator = require("../validators/cartValidator");
 Router.get("/", getAllItemsInCart);
 Router.post("/", createItemInCart);
 Router.delete("/clear/:id", deleteItemFromCart);

@@ -8,7 +8,7 @@ const {
   deleteProduct,
   filterProducts,
 } = require("../controller/productController");
-
+const productValidator = require("../validators/productValidator");
 Router.use(express.json());
 
 Router.get("/", getAllProducts);

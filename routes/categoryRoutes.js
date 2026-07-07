@@ -8,7 +8,7 @@ const createCategory =
   require("../controller/categoryController").createCategory;
 const updateCategory =
   require("../controller/categoryController").updateCategory;
-
+const categoryValidator = require("../validators/categoryValidator");
 Router.use(express.json());
 
 Router.get("/", getAllCategories);
