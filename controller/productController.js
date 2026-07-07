@@ -4,15 +4,13 @@ const Category = require("../models/categorySchema");
 const { response } = require("../utils/response");
 const { ok } = response;
 const asyncHandler = require("../utils/asyncHandler");
-const AppError = require("../utils/AppError");
+const AppError = require("../middleWares/AppError");
 
-// 5.1 Products CRUD - Get all products
 const getAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find().populate("category");
   ok(res, products, "List of all products");
 });
 
-// 5.1 Products CRUD - Get product by id with populate
 const getProductById = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id).populate("category");
   if (!product) {
@@ -21,29 +19,28 @@ const getProductById = asyncHandler(async (req, res, next) => {
   ok(res, product, "Product found");
 });
 
-// 5.1 Products CRUD - Create product
-// 5.4 Category Validation on POST
 const createProduct = asyncHandler(async (req, res, next) => {
-  const { name, price, category } = req.body;
+  const { name, price, category, stock, description } = req.body;
 
-  if (!name || !price || !category) {
-    throw new AppError("Name, price, and category are required", 400);
+  if (!name || !price || !category || !stock || !description) {
+    throw new AppError(
+      "Name, price, category, stock, and description are required",
+      400,
+    );
   }
 
-  // Validate category exists
-//   const categoryExists = await Category.findById(category);
-//   if (!categoryExists) {
-//     throw new AppError("Category not found", 404);
-//   }
+  const categoryExists = await Category.findById(category);
+  if (!categoryExists) {
+    throw new AppError("Category not found", 404);
+  }
 
-  const product = new Product({ name, price, category });
+  const product = new Product({ name, price, category, stock, description });
   await product.save();
   await product.populate("category");
 
   ok(res, product, "Product created successfully");
 });
 
-// 5.1 Products CRUD - Update product
 const updateProduct = asyncHandler(async (req, res, next) => {
   const { name, price, category } = req.body;
 
@@ -93,17 +90,6 @@ const filterProducts = asyncHandler(async (req, res) => {
   // Filter by exact price
   if (price) {
     query.price = Number(price);
-  }
-
-  // Filter by price range
-  if (minPrice || maxPrice) {
-    query.price = {};
-    if (minPrice) {
-      query.price.$gte = Number(minPrice);
-    }
-    if (maxPrice) {
-      query.price.$lte = Number(maxPrice);
-    }
   }
 
   // Filter by category
