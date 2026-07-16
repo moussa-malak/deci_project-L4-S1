@@ -20,11 +20,11 @@ const getProductById = asyncHandler(async (req, res, next) => {
 });
 
 const createProduct = asyncHandler(async (req, res, next) => {
-  const { name, price, category, stock, description } = req.body;
+  const { name, price, category} = req.body;
 
-  if (!name || !price || !category || !stock || !description) {
+  if (!name || !price || !category) {
     throw new AppError(
-      "Name, price, category, stock, and description are required",
+      "Name, price, category, stock are required",
       400,
     );
   }
@@ -49,7 +49,7 @@ const updateProduct = asyncHandler(async (req, res, next) => {
     throw new AppError("Product not found", 404);
   }
 
-  // Validate category if provided
+
   if (category) {
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
@@ -67,7 +67,6 @@ const updateProduct = asyncHandler(async (req, res, next) => {
   ok(res, product, "Product updated successfully");
 });
 
-// 5.1 Products CRUD - Delete product
 const deleteProduct = asyncHandler(async (req, res, next) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) {
@@ -76,23 +75,19 @@ const deleteProduct = asyncHandler(async (req, res, next) => {
   ok(res, product, "Product deleted successfully");
 });
 
-// 5.2 Dynamic Filtering
 const filterProducts = asyncHandler(async (req, res) => {
   const { name, price, minPrice, maxPrice, category } = req.query;
 
   let query = {};
 
-  // Filter by name (case-insensitive)
   if (name) {
     query.name = { $regex: name, $options: "i" };
   }
 
-  // Filter by exact price
   if (price) {
     query.price = Number(price);
   }
 
-  // Filter by category
   if (category) {
     query.category = category;
   }

@@ -39,7 +39,7 @@ const updateCategory = asyncHandler(async (req, res, next) => {
   await category.save();
   ok(res, category, "Category updated successfully");
 });
-const deleteCategory = asyncHandler(async (req,) => {
+const deleteCategory = asyncHandler(async (req,res) => {
   const category = await Category.findByIdAndDelete(req.params.id)
   if (!category) {
     throw new AppError("Category not found", 404);
