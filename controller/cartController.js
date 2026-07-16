@@ -43,14 +43,6 @@ const getAllItemsInCart = asyncHandler(async (req, res) => {
 const createItemInCart = asyncHandler(async (req, res) => {
   const { product, quantity } = req.body;
 
-  if (!product || quantity == null) {
-    throw new AppError("Product and quantity are required", 400);
-  }
-
-  const productDoc = await Product.findById(product);
-  if (!productDoc) {
-    throw new AppError("Product not found", 404);
-  }
 
   const quantityToAdd = Number(quantity);
   if (!Number.isFinite(quantityToAdd) || quantityToAdd <= 0) {
@@ -59,21 +51,21 @@ const createItemInCart = asyncHandler(async (req, res) => {
 
   const cart = await getCart();
   const existingItem = cart.items.find((item) =>
-    item.product.equals(productDoc._id),
+    item.product.equals(product._id),
   );
 
   if (existingItem) {
     const newQuantity = existingItem.quantity + quantityToAdd;
-    if (productDoc.stock < newQuantity) {
+    if (product.stock < newQuantity) {
       throw new AppError("Insufficient stock for this product", 400);
     }
     existingItem.quantity = newQuantity;
-    existingItem.price = productDoc.price;
+    existingItem.price = product.price;
   } else {
     cart.items.push({
-      product: productDoc._id,
+      product: product._id,
       quantity: quantityToAdd,
-      price: productDoc.price,
+      price: product.price,
     });
   }
 

@@ -42,21 +42,13 @@ const createProduct = asyncHandler(async (req, res, next) => {
 });
 
 const updateProduct = asyncHandler(async (req, res, next) => {
-  const { name, price, category } = req.body;
-
   const product = await Product.findById(req.params.id);
   if (!product) {
     throw new AppError("Product not found", 404);
   }
 
 
-  if (category) {
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists) {
-      throw new AppError("Category not found", 404);
-    }
-    product.category = category;
-  }
+
 
   if (name) product.name = name;
   if (price) product.price = price;

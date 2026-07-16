@@ -19,7 +19,7 @@ Router.get("/:id", getProductById);
 
 Router.post("/", createProduct);
 
-Router.patch("/:id", updateProduct);
+Router.put("/:id", updateProduct);
 
 Router.delete("/:id", deleteProduct);
 

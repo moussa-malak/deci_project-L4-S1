@@ -37,6 +37,7 @@ const updateCategory = asyncHandler(async (req, res, next) => {
   if (name) category.name = name;
   if (description) category.description = description;
   await category.save();
+  ;
   ok(res, category, "Category updated successfully");
 });
 const deleteCategory = asyncHandler(async (req,res) => {
