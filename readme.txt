@@ -2,34 +2,35 @@
 
 A modern e-commerce REST API built with Node.js, Express, and MongoDB. This project provides comprehensive APIs for managing products, categories, shopping carts, and orders.
 
+Base route prefix: `/`
+
 ## API Endpoints
 
 ### Products
-- `GET /api/products` - Get all products
-- `GET /api/products/:id` - Get product by ID
-- `POST /api/products` - Create new product
-- `PUT /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
+- `GET /product` - Get all products
+- `GET /product/:id` - Get product by ID
+- `POST /product` - Create new product
+- `PUT /product/:id` - Update product
+- `DELETE /product/:id` - Delete product
 
 ### Categories
-- `GET /api/categories` - Get all categories
-- `GET /api/categories/:id` - Get category by ID
-- `POST /api/categories` - Create new category
-- `PUT /api/categories/:id` - Update category
-- `DELETE /api/categories/:id` - Delete category
+- `GET /category` - Get all categories
+- `GET /category/:id` - Get category by ID
+- `POST /category` - Create new category
+- `PUT /category/:id` - Update category
+- `DELETE /category/:id` - Delete category
 
 ### Shopping Cart
-- `GET /api/cart` - Get user's cart
-- `POST /api/cart` - Add item to cart
-- `PUT /api/cart/:id` - Update cart item
-- `DELETE /api/cart/:id` - Remove item from cart
+- `GET /cart` - Get user's cart
+- `POST /cart` - Add item to cart
+- `PUT /cart/:id` - Update cart item
+- `DELETE /cart/:id` - Remove item from cart
 
 ### Orders
-- `GET /api/orders` - Get all orders
-- `GET /api/orders/:id` - Get order by ID
-- `POST /api/orders` - Create new order
-- `PUT /api/orders/:id` - Update order status
-
+- `GET /orders` - Get all orders
+- `GET /orders/:id` - Get order by ID
+- `POST /orders` - Create new order (checkout from cart)
+- `PATCH /orders/:id/status` - Update order status
 
 ### Middleware
 - **404 Handler** - Catches undefined routes and returns proper 404 response
@@ -49,8 +50,79 @@ A modern e-commerce REST API built with Node.js, Express, and MongoDB. This proj
 - User reference, product reference, quantity
 
 ### Order Schema
-- User details, items array, order status, total amount, timestamps
+- Order number, items array, total amount, status, shipping address, timestamps
 
+## Data Structure
+
+### Product
+```json
+{
+  "_id": "ObjectId",
+  "name": "string",
+  "description": "string",
+  "price": 100,
+  "category": "ObjectId",
+  "stock": 10,
+  "inStock": true,
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
+
+### Category
+```json
+{
+  "_id": "ObjectId",
+  "name": "string",
+  "description": "string",
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
+
+### Cart
+```json
+{
+  "_id": "ObjectId",
+  "items": [
+    {
+      "product": "ObjectId",
+      "quantity": 2,
+      "price": 50
+    }
+  ],
+  "totalPrice": 100,
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
+
+### Order
+```json
+{
+  "_id": "ObjectId",
+  "orderNumber": "ORD-1680000000000",
+  "items": [
+    {
+      "product": "ObjectId",
+      "name": "string",
+      "price": 50,
+      "quantity": 2
+    }
+  ],
+  "totalPrice": 100,
+  "status": "pending",
+  "shippingAddress": {
+    "fullName": "string",
+    "address": "string",
+    "city": "string",
+    "postalCode": "string",
+    "country": "string"
+  },
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
 
 the github ripo link is
 https://github.com/moussa-malak/deci_project-L4-S1.git
