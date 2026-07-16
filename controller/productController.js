@@ -4,7 +4,7 @@ const Category = require("../models/categorySchema");
 const { response } = require("../utils/response");
 const { ok } = response;
 const asyncHandler = require("../utils/asyncHandler");
-const AppError = require("../middleWares/AppError");
+const AppError = require("../utils/AppError");
 
 const getAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find().populate("category");

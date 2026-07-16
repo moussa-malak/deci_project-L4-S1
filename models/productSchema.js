@@ -25,7 +25,13 @@ const productSchema = new mongoose.Schema(
     stock: {
       type: Number,
       required:[true, "proudct stock is required"],
-      min:0
+      min: 0,
+      default: 0,
+    },
+    inStock: {
+      type: Boolean,
+      default: true,
+     required:[true, "proudct stock is required"],
     },
   },
   { timestamps: true },

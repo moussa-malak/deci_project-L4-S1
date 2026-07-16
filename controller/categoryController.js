@@ -1,24 +1,19 @@
 const mongoose = require("mongoose");
 const Category = require("../models/categorySchema");
 const { response } = require("../utils/response");
-const { ok } = response.ok;
-const { error } = response.error;
-const categoryValidator= require("../validators/categoryValidator");
+const { ok } = response;
 const asyncHandler = require("../utils/asyncHandler");
-const AppError = require("../middleWares/AppError");
+const AppError = require("../utils/AppError");
 
 const getAllCategories = asyncHandler(async (req, res) => {
   const category = await Category.find();
-  if (!category) {
-    error(res, "No categories found", 404);
-  }
   ok(res, category, "this is the list of categories");
 });
 
 const getCategoryById = asyncHandler(async (req, res, next) => {
   const category = await Category.findById(req.params.id);
   if (!category) {
-    error(res, "Category not found", 404);
+    throw new AppError("Category not found", 404);
   }
   ok(res, category, "Category found");
 });
@@ -44,10 +39,18 @@ const updateCategory = asyncHandler(async (req, res, next) => {
   await category.save();
   ok(res, category, "Category updated successfully");
 });
+const deleteCategory = asyncHandler(async (req,) => {
+  const category = await Category.findByIdAndDelete(req.params.id)
+  if (!category) {
+    throw new AppError("Category not found", 404);
+  }
+  ok(res, category, "Category deleted successfully");
+})
 
 module.exports = {
   getAllCategories,
   getCategoryById,
   createCategory,
   updateCategory,
+  deleteCategory,
 };

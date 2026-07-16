@@ -11,10 +11,9 @@ async function seed() {
     await mongoose.connect(process.env.mongodb_url);
     console.log("Database connected");
 
-    await category.deleteMany();
-    await proudct.deleteMany();
-    await cart.deleteMany();
     await order.deleteMany();
+    await proudct.deleteMany();
+    await category.deleteMany();
 
     const electronics = await category.create({
       name: "Electronics",
@@ -23,6 +22,10 @@ async function seed() {
     const clothes = await category.create({
       name: "Clothes",
       description: "Apparel and fashion items",
+    });
+        const books = await category.create({
+      name: "books",
+      description: "books and reading items",
     });
 
     await proudct.insertMany([
@@ -38,7 +41,30 @@ async function seed() {
         price: 19.99,
         category: clothes._id,
       },
+      {name: "mouse",
+        description: "a gaming mouse",
+        price: 100.99,
+        category: electronics._id,
+      },
+      {
+        name: "jeans",
+        description: " jeans clothes",
+        price: 19.99,
+        category: clothes._id,
+      },
+       { name: "clean code",
+        description: "tips to be a good programmer",
+        price:75,
+        category: books._id,
+      },
+      {
+        name: "basics of maths",
+        description: "the first step to be a scientist",
+        price: 150,
+        category: books._id,
+      },
     ]);
+
 
     await proudct.create({
       name: "T-Shirt",

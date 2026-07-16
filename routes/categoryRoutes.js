@@ -8,6 +8,8 @@ const createCategory =
   require("../controller/categoryController").createCategory;
 const updateCategory =
   require("../controller/categoryController").updateCategory;
+  const deleteCategory =
+  require("../controller/categoryController").deleteCategory;
 const categoryValidator = require("../validators/categoryValidator");
 Router.use(express.json());
 
@@ -17,6 +19,8 @@ Router.get("/:id", getCategoryById);
 
 Router.post("/", createCategory);
 
-Router.put("/:id", updateCategory);
+Router.patch("/:id", updateCategory);
+
+Router.delete("/:id", deleteCategory);
 
 module.exports = Router;

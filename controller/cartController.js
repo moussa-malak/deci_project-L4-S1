@@ -4,7 +4,7 @@ const Product = require("../models/productSchema");
 const { response } = require("../utils/response");
 const { ok } = response;
 const asyncHandler = require("../utils/asyncHandler");
-const AppError = require("../middleWares/AppError");
+const AppError = require("../utils/AppError");
 
 const getAllItemsInCart = asyncHandler(async (req, res) => {
   try {
@@ -16,9 +16,9 @@ const getAllItemsInCart = asyncHandler(async (req, res) => {
 });
 
 const createItemInCart = asyncHandler(async (req, res) => {
-  const {products,quantity } = req.body;
+  const { products, quantity } = req.body;
 
-  if (!prouduct|| !quantity) {
+  if (!prouduct || !quantity) {
     throw new AppError("prouductand quantity are required", 400);
   }
 

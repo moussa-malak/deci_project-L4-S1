@@ -1,6 +1,6 @@
 const { body } = require("express-validator");
 
-const oederValidator = [
+const orderValidator = [
     body("product")
             .notEmpty()
         .withMessage("product is required"),

@@ -4,7 +4,7 @@ const Product = require("../models/productSchema");
 const { response } = require("../utils/response");
 const { ok } = response;
 const asyncHandler = require("../utils/asyncHandler");
-const AppError = require("../middleWares/AppError");
+const AppError = require("../utils/AppError");
 
 const createOrder = asyncHandler(async (req, res) => {
   const cartItems = await Cart.find();
