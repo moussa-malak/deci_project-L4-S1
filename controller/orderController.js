@@ -7,48 +7,59 @@ const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 
 const createOrder = asyncHandler(async (req, res) => {
-  const cartItems = await Cart.find();
-  if (!cartItems.length) {
+  const cart = await Cart.findOne().populate("items.product");
+  if (!cart || !cart.items.length) {
     throw new AppError("Cart is empty. Add items before checkout", 400);
   }
 
   const orderItems = [];
   let totalPrice = 0;
 
-  for (const cartItem of cartItems) {
-    const product = await Product.findById(cartItem.id);
+  for (const cartItem of cart.items) {
+    const product = await Product.findById(
+      cartItem.product._id || cartItem.product,
+    );
     if (!product) {
-      throw new AppError(
-        `Product not found for cart item ${cartItem.name}`,
-        404,
-      );
+      throw new AppError(`Product not found for cart item`, 404);
     }
 
-    if (product.stock < cartItem.numberOfItems) {
+    if (product.stock < cartItem.quantity) {
       throw new AppError(`Insufficient stock for product ${product.name}`, 400);
     }
 
-    product.stock -= cartItem.numberOfItems;
+    product.stock -= cartItem.quantity;
     await product.save();
 
-    const itemTotal = product.price * cartItem.numberOfItems;
+    const itemTotal = product.price * cartItem.quantity;
     orderItems.push({
       product: product._id,
       name: product.name,
       price: product.price,
-      quantity: cartItem.numberOfItems,
+      quantity: cartItem.quantity,
     });
     totalPrice += itemTotal;
   }
 
-  await order.save();
-  await Cart.deleteMany();
+  const orderNumber = `ORD-${Date.now()}`;
+
+  const order = await Order.create({
+    orderNumber,
+    items: orderItems,
+    totalPrice,
+    shippingAddress: req.body.shippingAddress || {},
+  });
+
+  cart.items = [];
+  cart.totalPrice = 0;
+  await cart.save();
 
   ok(res, order, "Order created successfully");
 });
 
 const getAllOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 });
+  const orders = await Order.find()
+    .sort({ createdAt: -1 })
+    .populate("items.product");
   ok(res, orders, "List of all orders");
 });
 

@@ -1,15 +1,15 @@
 const { body } = require("express-validator");
 
 const orderValidator = [
-    body("product")
-            .notEmpty()
-        .withMessage("product is required"),
-    body("totalPrice")
-        .notEmpty()
-        .withMessage("price is required")
-        .isNumeric()
-        .withMessage("price must be number"),
-
+  body("shippingAddress.fullName")
+    .notEmpty()
+    .withMessage("fullName is required"),
+  body("shippingAddress.address").notEmpty().withMessage("address is required"),
+  body("shippingAddress.city").notEmpty().withMessage("city is required"),
+  body("shippingAddress.postalCode")
+    .notEmpty()
+    .withMessage("postalCode is required"),
+  body("shippingAddress.country").notEmpty().withMessage("country is required"),
 ];
 
 module.exports = orderValidator;

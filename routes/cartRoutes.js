@@ -1,22 +1,18 @@
-const mongoose = require("mongoose");
 const express = require("express");
 const Router = express.Router();
-const Cart = require("../models/cartSchema");
-const { response } = require("../utils/response");
-const { ok } = response;
-const asyncHandler = require("../utils/asyncHandler");
-const AppError = require("../utils/AppError");
-const getAllItemsInCart =
-  require("../controller/cartController").getAllItemsInCart;
-const createItemInCart =
-  require("../controller/cartController").createItemInCart;
-const deleteItemFromCart =
-  require("../controller/cartController").deleteItemFromCart;
-const deleteAllItemsFromCart =
-  require("../controller/cartController").deleteAllItemsFromCart;
+const {
+  getAllItemsInCart,
+  createItemInCart,
+  updateItemQuantity,
+  deleteItemFromCart,
+  deleteAllItemsFromCart,
+} = require("../controller/cartController");
 const cartValidator = require("../validators/cartValidator");
+
 Router.get("/", getAllItemsInCart);
-Router.post("/", createItemInCart);
-Router.delete("/clear/:id", deleteItemFromCart);
-Router.delete("/clear", deleteAllItemsFromCart);
+Router.post("/items", cartValidator, createItemInCart);
+Router.patch("/items/:productId", updateItemQuantity);
+Router.delete("/items/:productId", deleteItemFromCart);
+Router.delete("/", deleteAllItemsFromCart);
+
 module.exports = Router;

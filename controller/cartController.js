@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Cart = require("../models/cartSchema");
 const Product = require("../models/productSchema");
 const { response } = require("../utils/response");
@@ -6,11 +5,20 @@ const { ok } = response;
 const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 
-const getAllItemsInCart = asyncHandler(async (req, res) => {
-  const cartItems = await Cart.find().populate("product");
+const getCart = async () => {
+  let cart = await Cart.findOne().populate("items.product");
+  if (!cart) {
+    cart = await Cart.create({ items: [], totalPrice: 0 });
+    cart = await Cart.findById(cart._id).populate("items.product");
+  }
+  return cart;
+};
 
-  const formattedItems = cartItems.map((item) => ({
-    id: item._id,
+const calculateTotalPrice = (items) =>
+  items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+const formatCart = (cart) => ({
+  items: cart.items.map((item) => ({
     product: item.product
       ? {
           id: item.product._id,
@@ -21,10 +29,15 @@ const getAllItemsInCart = asyncHandler(async (req, res) => {
         }
       : null,
     quantity: item.quantity,
-    totalPrice: item.product ? item.product.price * item.quantity : null,
-  }));
+    price: item.price,
+    totalPrice: item.price * item.quantity,
+  })),
+  totalPrice: cart.totalPrice,
+});
 
-  ok(res, formattedItems, "List of all items in the cart");
+const getAllItemsInCart = asyncHandler(async (req, res) => {
+  const cart = await getCart();
+  ok(res, formatCart(cart), "Cart retrieved successfully");
 });
 
 const createItemInCart = asyncHandler(async (req, res) => {
@@ -44,85 +57,101 @@ const createItemInCart = asyncHandler(async (req, res) => {
     throw new AppError("Quantity must be a number greater than zero", 400);
   }
 
-  const existingCartItem = await Cart.findOne({ product: productDoc._id });
-  if (existingCartItem) {
-    const newQuantity = existingCartItem.quantity + quantityToAdd;
+  const cart = await getCart();
+  const existingItem = cart.items.find((item) =>
+    item.product.equals(productDoc._id),
+  );
+
+  if (existingItem) {
+    const newQuantity = existingItem.quantity + quantityToAdd;
     if (productDoc.stock < newQuantity) {
       throw new AppError("Insufficient stock for this product", 400);
     }
-
-    existingCartItem.quantity = newQuantity;
-    await existingCartItem.save();
-    await existingCartItem.populate("product");
-
-    return ok(
-      res,
-      {
-        id: existingCartItem._id,
-        product: {
-          id: existingCartItem.product._id,
-          name: existingCartItem.product.name,
-          price: existingCartItem.product.price,
-        },
-        quantity: existingCartItem.quantity,
-        totalPrice: existingCartItem.product.price * existingCartItem.quantity,
-      },
-      "Cart item quantity updated",
-    );
+    existingItem.quantity = newQuantity;
+    existingItem.price = productDoc.price;
+  } else {
+    cart.items.push({
+      product: productDoc._id,
+      quantity: quantityToAdd,
+      price: productDoc.price,
+    });
   }
 
-  if (productDoc.stock < quantityToAdd) {
-    throw new AppError("Insufficient stock for this product", 400);
+  cart.totalPrice = calculateTotalPrice(cart.items);
+  await cart.save();
+  await cart.populate("items.product");
+
+  ok(res, formatCart(cart), "Item added to the cart");
+});
+
+const updateItemQuantity = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const { quantity } = req.body;
+
+  if (quantity == null) {
+    throw new AppError("Quantity is required", 400);
   }
 
-  const newItem = new Cart({
-    product: productDoc._id,
-    quantity: quantityToAdd,
-  });
-  await newItem.save();
-  await newItem.populate("product");
+  const quantityToSet = Number(quantity);
+  if (!Number.isFinite(quantityToSet) || quantityToSet < 0) {
+    throw new AppError("Quantity must be a non-negative number", 400);
+  }
 
-  ok(
-    res,
-    {
-      id: newItem._id,
-      product: {
-        id: newItem.product._id,
-        name: newItem.product.name,
-        price: newItem.product.price,
-      },
-      quantity: newItem.quantity,
-      totalPrice: newItem.product.price * newItem.quantity,
-    },
-    "Item added to the cart",
-  );
+  const cart = await getCart();
+  const item = cart.items.find((item) => item.product.equals(productId));
+  if (!item) {
+    throw new AppError("Cart item not found", 404);
+  }
+
+  if (quantityToSet === 0) {
+    cart.items = cart.items.filter((i) => !i.product.equals(productId));
+  } else {
+    const productDoc = await Product.findById(productId);
+    if (!productDoc) {
+      throw new AppError("Product not found", 404);
+    }
+    if (productDoc.stock < quantityToSet) {
+      throw new AppError("Insufficient stock for this product", 400);
+    }
+    item.quantity = quantityToSet;
+    item.price = productDoc.price;
+  }
+
+  cart.totalPrice = calculateTotalPrice(cart.items);
+  await cart.save();
+  await cart.populate("items.product");
+
+  ok(res, formatCart(cart), "Cart item updated successfully");
 });
 
 const deleteItemFromCart = asyncHandler(async (req, res) => {
-  try {
-    const { id } = req.params;
-    const itemToDelete = await Cart.findById(id);
-    if (!itemToDelete) {
-      throw new AppError("Item not found in the cart", 404);
-    }
-    await itemToDelete.deleteOne();
-    ok(res, { id }, "Item deleted from the cart");
-  } catch (error) {
-    throw new AppError(
-      "Error deleting item from the cart",
-      error.statusCode || 400,
-    );
+  const { productId } = req.params;
+  const cart = await getCart();
+  const item = cart.items.find((i) => i.product.equals(productId));
+  if (!item) {
+    throw new AppError("Cart item not found", 404);
   }
+
+  cart.items = cart.items.filter((i) => !i.product.equals(productId));
+  cart.totalPrice = calculateTotalPrice(cart.items);
+  await cart.save();
+
+  ok(res, formatCart(cart), "Item removed from the cart");
 });
 
 const deleteAllItemsFromCart = asyncHandler(async (req, res) => {
-  await Cart.deleteMany();
-  ok(res, { deleted: true }, "All cart items deleted");
+  const cart = await getCart();
+  cart.items = [];
+  cart.totalPrice = 0;
+  await cart.save();
+
+  ok(res, formatCart(cart), "Cart cleared successfully");
 });
 
 module.exports = {
   getAllItemsInCart,
   createItemInCart,
+  updateItemQuantity,
   deleteItemFromCart,
   deleteAllItemsFromCart,
 };
